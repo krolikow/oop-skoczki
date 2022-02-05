@@ -3,7 +3,6 @@ package gui;
 import backend.Board;
 import backend.Piece;
 import backend.Vector2d;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
@@ -29,9 +28,7 @@ public class GuiElementBox {
 
     public VBox setImages(Board board, Vector2d position) {
 
-        Label elementLabel;
         ImageView elementView;
-        elementLabel = new Label(""+ position);
         VBox elementVBox = new VBox();
         if (board.objectAt(position) != null){
             Piece piece = board.objectAt(position);
@@ -41,12 +38,9 @@ public class GuiElementBox {
             };
             elementView.setFitWidth(40);
             elementView.setFitHeight(40);
-            elementVBox.getChildren().addAll(elementLabel,elementView);
+            elementVBox.getChildren().addAll(elementView);
         }
 
-        else{
-            elementVBox.getChildren().add(elementLabel);
-        }
         elementVBox.setAlignment(Pos.CENTER);
 
         return elementVBox;

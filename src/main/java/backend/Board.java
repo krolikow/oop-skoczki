@@ -6,10 +6,20 @@ import java.lang.*;
 public class Board implements IPositionChangeObserver{
     private final Map<Vector2d, Piece> pieces = new LinkedHashMap<>();
     private Color turn;
+    private boolean over;
 
     public Board() {
+        this.over = false;
         this.turn = Color.WHITE;
         this.initialize();
+    }
+
+    public void switchOver(){
+        this.over = !this.over;
+    }
+
+    public boolean getOverValue(){
+        return this.over;
     }
 
     public boolean isWithinBoundaries(Vector2d position) {
@@ -27,7 +37,8 @@ public class Board implements IPositionChangeObserver{
     public boolean canMoveTo(LinkedList<Vector2d> moves, Vector2d fromPosition, Vector2d toPosition) {
 
         boolean firstMove = moves.size() < 2;
-        boolean check = canWalkMove(fromPosition, toPosition);
+        boolean checkWalk = canWalkMove(fromPosition, toPosition);
+        boolean checkJump = false;
 
         if (!isOccupied(toPosition)){
                 for (int i=-1;i<2;i++){
@@ -38,15 +49,18 @@ public class Board implements IPositionChangeObserver{
                         if((this.isWithinBoundaries(toJumpOver))&&(this.isOccupied(toJumpOver))&&
                                 (this.isWithinBoundaries(toJumpOver.add(unitVector2d)))&&
                                 (toJumpOver.add(unitVector2d).equals(toPosition))){
-                            check = true;
+                            checkJump = true;
                         }
                     }
                 }
             }
-        if(firstMove) return check;
+        if(firstMove) return (checkWalk)||(checkJump);
         else{
             //second part of statement checks if previous move wasn't walk move
-            return ((check)&&(!canWalkMove(fromPosition, moves.get(moves.size() - 2))));
+            if ((checkWalk)&&(canWalkMove(fromPosition, moves.get(moves.size() - 2)))){
+                return true;
+            }
+            return (checkJump) && (!canWalkMove(fromPosition, moves.get(moves.size() - 2)));
             }
     }
 
@@ -85,6 +99,39 @@ public class Board implements IPositionChangeObserver{
         initializePieces(Color.BLACK);
     }
 
+    public void initializeToShowGameOver(){ // for testing purposes
+        for (int i = 1; i <= 2; i++) {
+            for (int j = 1; j <= 8; j++) {
+                Vector2d position;
+                if((i == 2)&&(j == 4)){
+                    position = new Vector2d(4, 3);
+                }
+                else{
+                    position = new Vector2d(j, i);
+                }
+                Piece piece = new Piece(this, position, Color.BLACK);
+                pieces.put(position, piece);
+                piece.addObserver(this);
+            }
+        }
+
+        for (int i = 1; i <= 2; i++) {
+            for (int j = 1; j <= 8; j++) {
+                Vector2d position;
+                if((9-i == 7)&&(9-j == 4)){
+                    position = new Vector2d(4, 6);
+                }
+                else{
+                    position = new Vector2d(9-j, 9-i);
+                }
+
+                Piece piece = new Piece(this, position, Color.WHITE);
+                pieces.put(position, piece);
+                piece.addObserver(this);
+            }
+        }
+    }
+
     public void setOpposite() {
         switch (turn) {
             case WHITE -> this.turn = Color.BLACK;
@@ -112,7 +159,7 @@ public class Board implements IPositionChangeObserver{
         return true;
     }
     public boolean gameOverCheck(){
-        return gameOverCheckUtility(Color.WHITE)&&gameOverCheckUtility(Color.BLACK);
+        return (gameOverCheckUtility(Color.WHITE))||(gameOverCheckUtility(Color.BLACK));
     }
 
     @Override

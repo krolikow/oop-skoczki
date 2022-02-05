@@ -10,6 +10,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 import java.util.LinkedList;
@@ -21,6 +22,12 @@ public class App extends Application implements IPositionChangeObserver {
     private final LinkedList<Vector2d> moves = new LinkedList<>();
     private Piece initialPiece;
     private final GuiElementBox elementCreator = new GuiElementBox();
+
+    Color beige = Color.rgb(255, 255, 153);
+    Color lightGreen = Color.rgb(178, 255, 102);
+    Color red = Color.rgb(255, 0, 0);
+    Color green = Color.rgb(0, 102, 0);
+    Color blue = Color.rgb(51, 255, 255);
 
     @Override
     public void init() {
@@ -46,6 +53,7 @@ public class App extends Application implements IPositionChangeObserver {
             grid.getColumnConstraints().add(new ColumnConstraints(70));
 
             Label xAxis = new Label( String.format("%c", (char)(96+i)));
+            xAxis.setFont(new Font(20));
             GridPane.setHalignment(xAxis, HPos.CENTER);
             grid.add(xAxis, i, 0, 1, 1);
         }
@@ -54,6 +62,7 @@ public class App extends Application implements IPositionChangeObserver {
             grid.getRowConstraints().add(new RowConstraints(70));
 
             Label yAxis = new Label(String.format("%d",i));
+            yAxis.setFont(new Font(20));
             GridPane.setHalignment(yAxis, HPos.CENTER);
             grid.add(yAxis, 0, i, 1, 1);
         }
@@ -75,11 +84,10 @@ public class App extends Application implements IPositionChangeObserver {
                     if (moves.isEmpty()){
                         if ((this.board.isOccupied(elementsPosition))&&
                                 (this.board.getPieces().get(elementsPosition).getColor().equals(this.board.getTurn()))){
-                            pane.setBackground(new Background(new BackgroundFill(Color.rgb(0, 255, 100), CornerRadii.EMPTY, Insets.EMPTY)));
+                            pane.setBackground(new Background(new BackgroundFill(blue, CornerRadii.EMPTY, Insets.EMPTY)));
                         }
-
-                        Piece potentialInitialPiece = this.board.getPieces().get(elementsPosition);
-                        if ((potentialInitialPiece!=null)&&(potentialInitialPiece.getColor().equals(this.board.getTurn()))){
+                        if ((this.board.getPieces().get(elementsPosition)!=null)&&
+                                (this.board.getPieces().get(elementsPosition).getColor().equals(this.board.getTurn()))){
                             initialPiece = this.board.getPieces().get(elementsPosition);
                             moves.add(elementsPosition);
                         }
@@ -90,10 +98,10 @@ public class App extends Application implements IPositionChangeObserver {
                             Vector2d lastMove = moves.getLast();
                             if(this.board.canMoveTo(moves,lastMove,elementsPosition)){
                                 moves.add(elementsPosition);
-                                pane.setBackground(new Background(new BackgroundFill(Color.rgb(0, 102, 0), CornerRadii.EMPTY, Insets.EMPTY)));
+                                pane.setBackground(new Background(new BackgroundFill(green, CornerRadii.EMPTY, Insets.EMPTY)));
                             }
                             else{
-                                pane.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0), CornerRadii.EMPTY, Insets.EMPTY)));
+                                pane.setBackground(new Background(new BackgroundFill(red, CornerRadii.EMPTY, Insets.EMPTY)));
                                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                                 alert.setContentText("You can't make move to " + elementsPosition);
                                 alert.showAndWait();
@@ -105,19 +113,16 @@ public class App extends Application implements IPositionChangeObserver {
             }
         }
 
-        Label label = new Label("y\\x");
-        grid.add(label, 0, 0, 1, 1);
         grid.getColumnConstraints().add(new ColumnConstraints(70));
         grid.getRowConstraints().add(new RowConstraints(70));
-        GridPane.setHalignment(label, HPos.CENTER);
     }
 
     public void setPaneColor(Pane pane,int i, int j){
         if((i+j)%2==0){
-            pane.setBackground(new Background(new BackgroundFill(Color.rgb(255, 255, 153), CornerRadii.EMPTY, Insets.EMPTY)));
+            pane.setBackground(new Background(new BackgroundFill(beige, CornerRadii.EMPTY, Insets.EMPTY)));
         }
         else{
-            pane.setBackground(new Background(new BackgroundFill(Color.rgb(178, 255, 102), CornerRadii.EMPTY, Insets.EMPTY)));
+            pane.setBackground(new Background(new BackgroundFill(lightGreen, CornerRadii.EMPTY, Insets.EMPTY)));
         }
     }
 
@@ -127,27 +132,41 @@ public class App extends Application implements IPositionChangeObserver {
         Label whoseTurn = new Label("Turn: " + board.getTurn());
         box.getChildren().add(whoseTurn);
     }
+
     public VBox createVBoxInterface() {
         Label whoseTurn = new Label("Turn: " + board.getTurn());
+        Button newGameButton = new Button("New Game");
         Button startButton = new Button("Start");
-        VBox hBoxInterface = new VBox( startButton,whoseTurn);
+        VBox hBoxInterface = new VBox( startButton,newGameButton,whoseTurn);
         hBoxInterface.setAlignment(Pos.CENTER);
         hBoxInterface.setSpacing(15);
 
         startButton.setOnAction(click -> {
-            board.setOpposite();
-            initialPiece.makeMoves(moves);
+            if (initialPiece!=null){
+                initialPiece.makeMoves(moves);
+            }
             moves.clear();
             initializeGrid();
             hBoxInterface.getChildren().clear();
-            hBoxInterface.getChildren().addAll(startButton);
-
+            hBoxInterface.getChildren().addAll(startButton,newGameButton);
+            board.setOpposite();
+            this.updateTurn(hBoxInterface);
             if (this.board.gameOverCheck()){
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                this.board.setOpposite();
                 alert.setContentText(this.board.getTurn() + " won the game! Congratulations!");
                 alert.showAndWait();
+                this.board.switchOver();
             }
+        });
+
+        newGameButton.setOnAction(click -> {
+            init();
+            hBoxInterface.getChildren().clear();
+            hBoxInterface.getChildren().addAll(startButton,newGameButton);
             this.updateTurn(hBoxInterface);
+            this.grid.getChildren().clear();
+            initializeGrid();
         });
 
         return hBoxInterface;
@@ -170,9 +189,8 @@ public class App extends Application implements IPositionChangeObserver {
         HBox mainContent = new HBox(this.grid, vBoxContent);
         mainContent.setAlignment(Pos.CENTER);
         mainContent.setSpacing(30);
-        HBox wrapper = new HBox(mainContent);
-        wrapper.setPadding(new Insets(10));
-        primaryStage.setScene(new Scene(wrapper));
+        mainContent.setPadding(new Insets(10));
+        primaryStage.setScene(new Scene(mainContent));
         primaryStage.show();
     }
 }
