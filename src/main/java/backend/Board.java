@@ -6,20 +6,10 @@ import java.lang.*;
 public class Board implements IPositionChangeObserver{
     private final Map<Vector2d, Piece> pieces = new LinkedHashMap<>();
     private Color turn;
-    private boolean over;
 
     public Board() {
-        this.over = false;
         this.turn = Color.WHITE;
         this.initialize();
-    }
-
-    public void switchOver(){
-        this.over = !this.over;
-    }
-
-    public boolean getOverValue(){
-        return this.over;
     }
 
     public boolean isWithinBoundaries(Vector2d position) {
@@ -153,7 +143,12 @@ public class Board implements IPositionChangeObserver{
                 else{
                     position = new Vector2d(9-j, 9-i);
                 }
-                if (!(this.pieces.get(position).getColor().equals(color))) return false;
+                if(this.pieces.get(position)!=null){
+                    if (!(this.pieces.get(position).getColor().equals(color))) return false;
+                }
+                else{
+                    return false;
+                }
             }
         }
         return true;

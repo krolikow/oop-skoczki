@@ -156,7 +156,6 @@ public class App extends Application implements IPositionChangeObserver {
                 this.board.setOpposite();
                 alert.setContentText(this.board.getTurn() + " won the game! Congratulations!");
                 alert.showAndWait();
-                this.board.switchOver();
             }
         });
 
