@@ -2,7 +2,7 @@ package gui;
 
 import backend.Board;
 import backend.Piece;
-import backend.Vector;
+import backend.Vector2d;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -27,7 +27,7 @@ public class GuiElementBox {
         loadImages();
     }
 
-    public VBox setImages(Board board, Vector position) {
+    public VBox setImages(Board board, Vector2d position) {
 
         Label elementLabel;
         ImageView elementView;

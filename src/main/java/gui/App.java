@@ -18,10 +18,9 @@ import java.util.LinkedList;
 public class App extends Application implements IPositionChangeObserver {
     private Board board;
     private final GridPane grid = new GridPane();
-    private LinkedList<Vector> moves = new LinkedList<>();
+    private final LinkedList<Vector2d> moves = new LinkedList<>();
     private Piece initialPiece;
-    private VBox vBoxContent;
-    private GuiElementBox elementCreator = new GuiElementBox();
+    private final GuiElementBox elementCreator = new GuiElementBox();
 
     @Override
     public void init() {
@@ -61,7 +60,7 @@ public class App extends Application implements IPositionChangeObserver {
 
         for (int i=1; i<= 8; i++) {
             for (int j=1; j<= 8; j++) {
-                Vector currentPosition = new Vector(j, i);
+                Vector2d currentPosition = new Vector2d(j, i);
                 Pane pane = new Pane();
                 grid.add(pane,j,i,1,1);
                 setPaneColor(pane,j,i);
@@ -71,7 +70,7 @@ public class App extends Application implements IPositionChangeObserver {
                 grid.add(element, j, i,1,1);
 
                 element.setOnMouseClicked(click -> {
-                    Vector elementsPosition = new Vector(GridPane.getColumnIndex(pane),GridPane.getRowIndex(pane));
+                    Vector2d elementsPosition = new Vector2d(GridPane.getColumnIndex(pane),GridPane.getRowIndex(pane));
 
                     if (moves.isEmpty()){
                         if ((this.board.isOccupied(elementsPosition))&&
@@ -88,7 +87,7 @@ public class App extends Application implements IPositionChangeObserver {
 
                     else{
                         if (initialPiece!=null){
-                            Vector lastMove = moves.getLast();
+                            Vector2d lastMove = moves.getLast();
                             if(this.board.canMoveTo(moves,lastMove,elementsPosition)){
                                 moves.add(elementsPosition);
                                 pane.setBackground(new Background(new BackgroundFill(Color.rgb(0, 102, 0), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -122,7 +121,7 @@ public class App extends Application implements IPositionChangeObserver {
         }
     }
 
-    public void positionChanged(Vector oldPosition, Vector newPosition) {}
+    public void positionChanged(Vector2d oldPosition, Vector2d newPosition) {}
 
     public void updateTurn(VBox box){
         Label whoseTurn = new Label("Turn: " + board.getTurn());
@@ -166,9 +165,9 @@ public class App extends Application implements IPositionChangeObserver {
     @Override
     public void start(Stage primaryStage) {
         this.grid.setGridLinesVisible(true);
-        this.vBoxContent = createVBoxInterface();
+        VBox vBoxContent = createVBoxInterface();
         initializeGrid();
-        HBox mainContent = new HBox(this.grid,vBoxContent);
+        HBox mainContent = new HBox(this.grid, vBoxContent);
         mainContent.setAlignment(Pos.CENTER);
         mainContent.setSpacing(30);
         HBox wrapper = new HBox(mainContent);

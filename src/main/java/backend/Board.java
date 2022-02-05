@@ -4,7 +4,7 @@ import java.util.*;
 import java.lang.*;
 
 public class Board implements IPositionChangeObserver{
-    private Map<Vector, Piece> pieces = new LinkedHashMap<>();
+    private final Map<Vector2d, Piece> pieces = new LinkedHashMap<>();
     private Color turn;
 
     public Board() {
@@ -12,81 +12,77 @@ public class Board implements IPositionChangeObserver{
         this.initialize();
     }
 
-    public boolean isWithinBoundaries(Vector position) {
+    public boolean isWithinBoundaries(Vector2d position) {
         return (1 <= position.x) && (position.x <= 8) && (1 <= position.y) && (position.y <= 8);
     }
 
-    public boolean canWalkMove(Vector fromPosition, Vector toPosition){
+    public boolean canWalkMove(Vector2d fromPosition, Vector2d toPosition){
         int xDifference = Math.abs(fromPosition.x - toPosition.x);
         int yDifference = Math.abs(fromPosition.y - toPosition.y);
         int sum = xDifference + yDifference;
         int product = xDifference * yDifference;
-        System.out.println(sum);
-        System.out.println(product);
         return (!(isOccupied(toPosition))) && (sum == 1) && (product == 0);
     }
 
-    public boolean canMoveTo(LinkedList<Vector> moves, Vector fromPosition, Vector toPosition) {
+    public boolean canMoveTo(LinkedList<Vector2d> moves, Vector2d fromPosition, Vector2d toPosition) {
 
-            boolean flag = moves.size() < 2;
-            if(canWalkMove(fromPosition,toPosition)){
-                // first part of statement checks if previous move wasn't walk move
-                if (flag) return true;
-                else{
-                    return (canWalkMove(fromPosition,moves.get(moves.size()-2)));
-                }
-            }
+        boolean firstMove = moves.size() < 2;
+        boolean check = canWalkMove(fromPosition, toPosition);
 
-            if (!isOccupied(toPosition)){
+        if (!isOccupied(toPosition)){
                 for (int i=-1;i<2;i++){
                     for (int j=-1;j<2;j++){
-                        Vector unitVector = new Vector(j,i);
-                        Vector toJumpOver = fromPosition.add(unitVector);
+                        Vector2d unitVector2d = new Vector2d(j,i);
+                        Vector2d toJumpOver = fromPosition.add(unitVector2d);
 
                         if((this.isWithinBoundaries(toJumpOver))&&(this.isOccupied(toJumpOver))&&
-                                (this.isWithinBoundaries(toJumpOver.add(unitVector)))&&(toJumpOver.add(unitVector).equals(toPosition))){
-                            if (flag) return true;
-                            else{
-                                return !canWalkMove(fromPosition,moves.get(moves.size()-2));
-                            }
+                                (this.isWithinBoundaries(toJumpOver.add(unitVector2d)))&&
+                                (toJumpOver.add(unitVector2d).equals(toPosition))){
+                            check = true;
                         }
                     }
                 }
             }
-        return false;
+        if(firstMove) return check;
+        else{
+            //second part of statement checks if previous move wasn't walk move
+            return ((check)&&(!canWalkMove(fromPosition, moves.get(moves.size() - 2))));
+            }
     }
 
-    public Map<Vector, Piece> getPieces(){
+    public Map<Vector2d, Piece> getPieces(){
         return pieces;
     }
-    public Piece objectAt(Vector position) {
+
+    public Piece objectAt(Vector2d position) {
         return pieces.get(position);
     }
 
-    public boolean isOccupied(Vector position) {
+    public boolean isOccupied(Vector2d position) {
         Piece element = pieces.get(position);
         return element != null;
     }
 
+    public void initializePieces(Color color){
+        for (int i = 1; i <= 2; i++) {
+            for (int j = 1; j <= 8; j++) {
+                Vector2d position;
+                if (color.equals(Color.WHITE)) {
+                    position = new Vector2d(j, i);
+                }
+                else{
+                    position = new Vector2d(9-j, 9-i);
+                }
+                Piece piece = new Piece(this, position, color);
+                pieces.put(position, piece);
+                piece.addObserver(this);
+            }
+        }
+    }
+
     public void initialize() {
-
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 8; j++) {
-                Vector position = new Vector(j + 1, i + 1);
-                Piece piece = new Piece(this, position, Color.WHITE);
-                pieces.put(position, piece);
-                piece.addObserver(this);
-            }
-        }
-
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 8; j++) {
-                Vector position = new Vector(j + 1, 8 - i);
-                Piece piece = new Piece(this, position, Color.BLACK);
-                pieces.put(position, piece);
-                piece.addObserver(this);
-            }
-        }
+        initializePieces(Color.WHITE);
+        initializePieces(Color.BLACK);
     }
 
     public void setOpposite() {
@@ -100,24 +96,27 @@ public class Board implements IPositionChangeObserver{
         return this.turn;
     }
 
-    public boolean gameOverCheck(){
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (!(this.pieces.get(new Vector(j + 1, i + 1)).getColor().equals(Color.BLACK))) return false;
+    public boolean gameOverCheckUtility(Color color){
+        for (int i = 1; i <= 2; i++) {
+            for (int j = 1; j <= 8; j++) {
+                Vector2d position;
+                if (color.equals(Color.BLACK)) {
+                    position = new Vector2d(j, i);
+                }
+                else{
+                    position = new Vector2d(9-j, 9-i);
+                }
+                if (!(this.pieces.get(position).getColor().equals(color))) return false;
             }
         }
-
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (!(this.pieces.get(new Vector(j + 1, 8 - i)).getColor().equals(Color.WHITE))) return false;
-            }
-        }
-
         return true;
+    }
+    public boolean gameOverCheck(){
+        return gameOverCheckUtility(Color.WHITE)&&gameOverCheckUtility(Color.BLACK);
     }
 
     @Override
-    public void positionChanged(Vector oldPosition, Vector newPosition) {
+    public void positionChanged(Vector2d oldPosition, Vector2d newPosition) {
         Piece piece = this.pieces.get(oldPosition);
         this.pieces.remove(oldPosition);
         this.pieces.put(newPosition, piece);
