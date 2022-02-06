@@ -3,7 +3,7 @@ package backend;
 import java.util.Objects;
 
 public class Vector2d {
-    public final int x, y;
+    protected final int x, y;
 
 
     public Vector2d(int x, int y) {

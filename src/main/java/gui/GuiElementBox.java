@@ -12,7 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 public class GuiElementBox {
-    Image blackPiece, whitePiece;
+    private Image blackPiece, whitePiece;
 
     private void loadImages() {
         try {
