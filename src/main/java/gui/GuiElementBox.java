@@ -7,6 +7,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Pos;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
@@ -22,7 +23,7 @@ public class GuiElementBox {
         }
     }
 
-    public GuiElementBox(){
+    public GuiElementBox() {
         loadImages();
     }
 
@@ -30,7 +31,7 @@ public class GuiElementBox {
 
         ImageView elementView;
         VBox elementVBox = new VBox();
-        if (board.objectAt(position) != null){
+        if (board.objectAt(position) != null) {
             Piece piece = board.objectAt(position);
             elementView = switch ((piece).getColor()) {
                 case WHITE -> new ImageView(whitePiece);
