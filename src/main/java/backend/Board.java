@@ -24,34 +24,41 @@ public class Board implements IPositionChangeObserver{
         return (!(isOccupied(toPosition))) && (sum == 1) && (product == 0);
     }
 
-    public boolean canMoveTo(LinkedList<Vector2d> moves, Vector2d fromPosition, Vector2d toPosition) {
+    public boolean canJumpMove(Vector2d fromPosition, Vector2d toPosition){
+        for (int i=-1;i<2;i++){
+            for (int j=-1;j<2;j++){
+                Vector2d unitVector2d = new Vector2d(j,i);
+                Vector2d toJumpOver = fromPosition.add(unitVector2d);
+
+                if((this.isWithinBoundaries(toJumpOver))&&(this.isOccupied(toJumpOver))&&
+                        (this.isWithinBoundaries(toJumpOver.add(unitVector2d)))&&
+                        ((toJumpOver.add(unitVector2d)).equals(toPosition))){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public Move getMove(LinkedList<Vector2d> moves, LinkedList<Move> moveTypes, Vector2d fromPosition, Vector2d toPosition) {
+
+        if(isOccupied(toPosition)) return Move.NONE;
 
         boolean firstMove = moves.size() < 2;
         boolean checkWalk = canWalkMove(fromPosition, toPosition);
-        boolean checkJump = false;
+        boolean checkJump = canJumpMove(fromPosition,toPosition);
 
-        if (!isOccupied(toPosition)){
-                for (int i=-1;i<2;i++){
-                    for (int j=-1;j<2;j++){
-                        Vector2d unitVector2d = new Vector2d(j,i);
-                        Vector2d toJumpOver = fromPosition.add(unitVector2d);
 
-                        if((this.isWithinBoundaries(toJumpOver))&&(this.isOccupied(toJumpOver))&&
-                                (this.isWithinBoundaries(toJumpOver.add(unitVector2d)))&&
-                                (toJumpOver.add(unitVector2d).equals(toPosition))){
-                            checkJump = true;
-                        }
-                    }
-                }
-            }
-        if(firstMove) return (checkWalk)||(checkJump);
+        if(firstMove){
+            if (checkWalk) return Move.WALK;
+            else if (checkJump) return Move.JUMP;
+        }
         else{
-            //second part of statement checks if previous move wasn't walk move
-            if ((checkWalk)&&(canWalkMove(fromPosition, moves.get(moves.size() - 2)))){
-                return true;
+            if ((checkJump)&&(!(moveTypes.get(moveTypes.size()-1).equals(Move.WALK)))){
+                return Move.JUMP;
             }
-            return (checkJump) && (!canWalkMove(fromPosition, moves.get(moves.size() - 2)));
-            }
+        }
+        return Move.NONE;
     }
 
     public Map<Vector2d, Piece> getPieces(){

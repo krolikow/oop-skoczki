@@ -20,6 +20,7 @@ public class App extends Application implements IPositionChangeObserver {
     private Board board;
     private final GridPane grid = new GridPane();
     private final LinkedList<Vector2d> moves = new LinkedList<>();
+    private final LinkedList<Move> moveTypes = new LinkedList<>();
     private Piece initialPiece;
     private final GuiElementBox elementCreator = new GuiElementBox();
 
@@ -33,6 +34,8 @@ public class App extends Application implements IPositionChangeObserver {
     public void init() {
         try{
             this.board = new Board();
+            moves.clear();
+            moveTypes.clear();
         }
 
         catch (IllegalArgumentException exception) {
@@ -90,14 +93,17 @@ public class App extends Application implements IPositionChangeObserver {
                                 (this.board.getPieces().get(elementsPosition).getColor().equals(this.board.getTurn()))){
                             initialPiece = this.board.getPieces().get(elementsPosition);
                             moves.add(elementsPosition);
+                            moveTypes.add(Move.NONE);
                         }
                     }
 
                     else{
                         if (initialPiece!=null){
                             Vector2d lastMove = moves.getLast();
-                            if(this.board.canMoveTo(moves,lastMove,elementsPosition)){
+                            Move moveType = this.board.getMove(moves,moveTypes,lastMove,elementsPosition);
+                            if(!(moveType.equals(Move.NONE))){
                                 moves.add(elementsPosition);
+                                moveTypes.add(moveType);
                                 pane.setBackground(new Background(new BackgroundFill(green, CornerRadii.EMPTY, Insets.EMPTY)));
                             }
                             else{
@@ -146,6 +152,7 @@ public class App extends Application implements IPositionChangeObserver {
                 initialPiece.makeMoves(moves);
             }
             moves.clear();
+            moveTypes.clear();
             initializeGrid();
             hBoxInterface.getChildren().clear();
             hBoxInterface.getChildren().addAll(startButton,newGameButton);
