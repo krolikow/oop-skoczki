@@ -9,5 +9,6 @@ public class Game {
             Application.launch(App.class, args);
         } catch (IllegalArgumentException ex) {
             System.out.println("Error has occured: " + ex);
+            System.exit(-1);
     }
 }}
